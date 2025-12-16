@@ -8,6 +8,7 @@ export const COLORS = {
     // Colores de identidad
     bcv: '#10B981',    
     binance: '#FBBF24', // Amarillo Binance
+    promedio: '#8B5CF6', // Morado promedio
     euro: '#3B82F6',    // Azul Euro
     
     danger: '#EF4444',  // Rojo para borrar/cancelar
