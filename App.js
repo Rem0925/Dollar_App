@@ -5,6 +5,7 @@ import { House, ChartLineUp } from 'phosphor-react-native';
 import HomeScreen from './src/screens/HomeScreen';
 import ChartScreen from './src/screens/ChartScreen';
 import { COLORS } from './src/theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
 
@@ -18,6 +19,7 @@ const MyTheme = {
 
 export default function App() {
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
     <NavigationContainer theme={MyTheme}>
       <Tab.Navigator
         screenOptions={({ route }) => ({
@@ -64,5 +66,6 @@ export default function App() {
         />
       </Tab.Navigator>
     </NavigationContainer>
+    </SafeAreaView>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
     View, Text, StyleSheet, StatusBar, ActivityIndicator, SafeAreaView, 
-    TouchableOpacity, ScrollView, Animated, Alert, Dimensions, Modal 
+    TouchableOpacity, ScrollView, Animated, Alert, Dimensions, Modal,Platform
 } from 'react-native';
 import { COLORS } from '../theme';
 import { getTasas, getDiasDisponibles } from '../services/api';

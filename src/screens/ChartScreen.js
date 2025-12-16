@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Dimensions,  StatusBar, ActivityIndicator,Platform } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import { COLORS } from '../theme';
 import { getHistorial } from '../services/api';
 import { formatCurrency } from '../utils/helpers';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -184,6 +185,7 @@ export default function ChartScreen() {
     if (loading) return <View style={styles.center}><ActivityIndicator color={COLORS.accent} /></View>;
 
     return (
+    <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.container}>
             <View style={styles.headerText}>
                 <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -291,6 +293,7 @@ export default function ChartScreen() {
                 </View>
             </View>
         </View>
+    </SafeAreaView>
     );
 }
 
@@ -305,7 +308,7 @@ const LegendItem = ({ label, value, color }) => (
 );
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: COLORS.background},
+    container: { flex: 1, backgroundColor: COLORS.background, paddingTop: 10 },
     center: { flex: 1, backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center' },
     
     headerText: { paddingHorizontal: 20, marginBottom: 20 },
