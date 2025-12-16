@@ -23,7 +23,6 @@ export default function NumPad({ onPress }) {
                             <Backspace color={COLORS.danger} weight="bold" size={22} />
                         </View>
                     ) : k === ',' ? (
-                        // Mostramos la coma grande
                         <Text style={[styles.keyText, { paddingBottom: 10 }]}>,</Text>
                     ) : (
                         <Text style={styles.keyText}>{k}</Text>

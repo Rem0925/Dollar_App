@@ -1,5 +1,3 @@
-// src/utils/helpers.js
-
 export const formatCurrency = (amount) => {
     if (amount === '' || amount === null || amount === undefined) return '0,00';
     

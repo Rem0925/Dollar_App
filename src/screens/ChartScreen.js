@@ -53,9 +53,6 @@ export default function ChartScreen() {
                 lastEuro = parseFloat(dataMap[key].euro);
             }
 
-            // --- CORRECCIÓN CLAVE: Guardamos 'originalValue' ---
-            // 'value' se usa para dibujar (será afectado por el offset)
-            // 'originalValue' se usa para mostrar el texto real
             bcvData.push({ 
                 value: lastBCV, 
                 originalValue: lastBCV, // <--- Dato real

@@ -28,12 +28,11 @@ export default function App() {
           tabBarStyle: {
             backgroundColor: COLORS.cardBg,
             borderTopWidth: 0,
-            // --- CAMBIOS DE TAMAÑO ---
-            height: 55, // Más pequeña (era 70)
-            paddingTop: 0, // Centrado vertical perfecto
+            height: 55, 
+            paddingTop: 0, 
             position: 'absolute', 
-            bottom: 15, // Más pegada al borde
-            left: 40,   // Más estrecha
+            bottom: 15, 
+            left: 40,   
             right: 40,
             borderRadius: 25,
             shadowColor: '#000',
@@ -49,9 +48,8 @@ export default function App() {
             name="Inicio" 
             component={HomeScreen} 
             options={{
-                // Iconos un poco más pequeños (size 24)
                 tabBarIcon: ({ color, focused }) => (
-                    <House weight={focused ? "fill" : "bold"} size={24} color={color} style={{marginTop: 15}} /> // Ajuste manual de centrado
+                    <House weight={focused ? "fill" : "bold"} size={24} color={color} style={{marginTop: 15}} /> 
                 )
             }}
         />
