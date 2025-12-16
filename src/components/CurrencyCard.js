@@ -1,14 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { COLORS, SIZES } from '../theme';
-import { formatCurrency } from '../utils/helpers'; // <--- IMPORTANTE
+import { formatCurrency } from '../utils/helpers';
 
-export default function CurrencyCard({ title, rate, symbol, color, conversionMode, calculatedValue, resultSymbol, variant = 'full' }) {
+export default function CurrencyCard({ title, rate, symbol, color, conversionMode, calculatedValue, resultSymbol, variant = 'full', style, showRate = false }) {
     
     // --- DISEÑO MINI (CARRUSEL) ---
     if (variant === 'mini') {
         return (
-            <View style={[styles.miniContainer, { borderTopColor: color }]}>
+            <View style={[styles.miniContainer, { borderTopColor: color }, style]}>
                 <View style={styles.miniHeader}>
                     <View style={[styles.miniIcon, { backgroundColor: color + '20' }]}>
                         <Text style={{ fontSize: 16 }}>{symbol}</Text>
@@ -20,7 +20,6 @@ export default function CurrencyCard({ title, rate, symbol, color, conversionMod
                     <Text style={styles.miniLabel}>Recibes</Text>
                     <View style={{flexDirection: 'row', alignItems: 'baseline'}}>
                         <Text style={[styles.miniSymbol, {color: COLORS.textSecondary, fontSize: 10, marginRight: 2}]}>{resultSymbol}</Text>
-                        {/* APLICAMOS EL FORMATO AQUÍ */}
                         <Text style={[styles.miniValue, { color: color }]}>
                             {formatCurrency(calculatedValue)} 
                         </Text>
@@ -30,9 +29,9 @@ export default function CurrencyCard({ title, rate, symbol, color, conversionMod
         );
     }
 
-    // --- DISEÑO NORMAL (LISTA) ---
+    // --- DISEÑO NORMAL (LISTA / CAPTURE) ---
     return (
-        <View style={[styles.container, { borderLeftColor: color }]}>
+        <View style={[styles.container, { borderLeftColor: color }, style]}>
             <View style={styles.header}>
                 <View style={[styles.iconBox, { backgroundColor: color + '20' }]}>
                     <Text style={{ fontSize: 18 }}>{symbol}</Text>
@@ -42,17 +41,23 @@ export default function CurrencyCard({ title, rate, symbol, color, conversionMod
 
             <View style={styles.body}>
                 {conversionMode ? (
-                    <View>
-                        <View style={{flexDirection: 'row', alignItems: 'baseline', justifyContent: 'flex-end', gap: 4}}>
+                    <View style={{alignItems: 'flex-end'}}>
+                        {/* Resultado de la conversión */}
+                        <View style={{flexDirection: 'row', alignItems: 'baseline', gap: 4}}>
                             <Text style={{color: color, fontSize: 14, fontWeight: 'bold'}}>{resultSymbol}</Text>
-                            {/* APLICAMOS EL FORMATO AQUÍ */}
                             <Text style={[styles.value, { color: color }]}>{formatCurrency(calculatedValue)}</Text>
                         </View>
                         <Text style={styles.label}>Recibes Aprox.</Text>
+
+                        {/* Solo se muestra si activamos showRate (para el capture) */}
+                        {showRate && (
+                            <Text style={[styles.label, { marginTop: 4, opacity: 0.7, fontSize: 11 }]}>
+                                (Tasa: {formatCurrency(rate)})
+                            </Text>
+                        )}
                     </View>
                 ) : (
                     <View>
-                        {/* APLICAMOS EL FORMATO AQUÍ */}
                         <Text style={styles.value}>{formatCurrency(rate)}</Text>
                         <Text style={styles.label}>Tasa del día</Text>
                     </View>
@@ -76,15 +81,16 @@ const styles = StyleSheet.create({
     label: { color: COLORS.textSecondary, fontSize: 10, textTransform: 'uppercase', fontWeight: '600', marginTop: 2, textAlign: 'right' },
 
     miniContainer: {
-        backgroundColor: COLORS.cardBg, borderRadius: 20, padding: 15, marginRight: 15,
-        width: 150, height: 130, borderTopWidth: 4, justifyContent: 'space-between',
+        backgroundColor: COLORS.cardBg, borderRadius: 20, padding: 12, width: 140, 
+        marginRight: 15,
+        height: 130, borderTopWidth: 4, justifyContent: 'space-between',
         shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 5, elevation: 5,
     },
     miniHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 5 },
-    miniIcon: { width: 30, height: 30, borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginRight: 8 },
+    miniIcon: { width: 28, height: 28, borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginRight: 6 },
     miniTitle: { fontSize: 12, fontWeight: 'bold' },
     miniBody: { alignItems: 'flex-start' },
-    miniLabel: { color: COLORS.textSecondary, fontSize: 10, textTransform: 'uppercase' },
+    miniLabel: { color: COLORS.textSecondary, fontSize: 9, textTransform: 'uppercase' },
     miniSymbol: { fontWeight: 'bold' },
-    miniValue: { fontSize: 18, fontWeight: '900', marginTop: 2 },
+    miniValue: { fontSize: 17, fontWeight: '900', marginTop: 2 },
 });

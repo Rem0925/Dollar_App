@@ -244,6 +244,7 @@ export default function HomeScreen() {
                             color={COLORS.bcv} 
                             rate={data?.bcv} // Pasamos la tasa también por si acaso
                             conversionMode={true} 
+                            showRate={true}
                             resultSymbol={baseCurrency === 'USD' ? 'Bs' : '$'} 
                             calculatedValue={calculate(data?.bcv)} 
                         />
@@ -253,6 +254,7 @@ export default function HomeScreen() {
                             color={COLORS.binance} 
                             rate={data?.binance}
                             conversionMode={true} 
+                            showRate={true}
                             resultSymbol={baseCurrency === 'USD' ? 'Bs' : 'USDT'} 
                             calculatedValue={calculate(data?.binance)} 
                         />
@@ -262,6 +264,7 @@ export default function HomeScreen() {
                             color={COLORS.euro} 
                             rate={data?.euro}
                             conversionMode={true} 
+                            showRate={true}
                             resultSymbol={baseCurrency === 'USD' ? 'Bs' : '€'} 
                             calculatedValue={calculate(data?.euro)} 
                         />
