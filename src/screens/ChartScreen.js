@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions,  StatusBar, ActivityIndicator,Platform } from 'react-native';
+import { View, Text, StyleSheet, Dimensions,ActivityIndicator} from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import { COLORS } from '../theme';
 import { getHistorial } from '../services/api';

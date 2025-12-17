@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-    View, Text, StyleSheet, StatusBar, ActivityIndicator, SafeAreaView, 
-    TouchableOpacity, ScrollView, Animated, Alert, Dimensions, Modal,Platform
+    View, Text, StyleSheet, StatusBar, ActivityIndicator, 
+    TouchableOpacity, ScrollView, Animated, Alert, Dimensions, Modal
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../theme';
 import { getTasas, getDiasDisponibles } from '../services/api';
 import CurrencyCard from '../components/CurrencyCard';
@@ -53,19 +54,27 @@ export default function HomeScreen() {
     }, [calMonth, calYear, modalVisible]);
 
     const initialLoad = async () => {
+        let cacheLoaded = false; 
         try {
             const cached = await AsyncStorage.getItem('@last_rates');
             if (cached) {
                 setData(JSON.parse(cached));
                 setLoading(false);
+                cacheLoaded = true;
             }
-        } catch (e) { console.log('Error caché', e); }
-        fetchFreshData();
+        } catch (e) { 
+            console.log('Error caché', e); 
+        }
+        fetchFreshData(null, cacheLoaded);
     };
 
-    const fetchFreshData = async (dateString = null) => {
-        if (!data) setLoading(true);
-        else setIsUpdating(true);
+    const fetchFreshData = async (dateString = null, hasLocalData = false) => {
+        const shouldShowFullLoading = dateString ? true : (!data && !hasLocalData);
+        if (shouldShowFullLoading) {
+            setLoading(true); // Pantalla de carga completa (Cargando...)
+        } else {
+            setIsUpdating(true); // Solo el indicador pequeño "ACTUALIZANDO..." arriba
+        }
         
         try {
             const res = await getTasas(dateString);
@@ -82,7 +91,11 @@ export default function HomeScreen() {
             }
         } catch (error) {
             console.error("Error API:", error);
-            Alert.alert("Error", "Error de conexión.");
+            // Si falla la conexión y no tenemos data ni caché, mostramos alerta.
+            // Si ya mostramos el caché, el usuario ni se entera del error intrusivo, solo sigue viendo la data vieja.
+            if (!data && !hasLocalData) {
+                Alert.alert("Error", "No se pudo conectar con el servidor.");
+            }
         } finally {
             setLoading(false);
             setIsUpdating(false);
@@ -209,7 +222,7 @@ export default function HomeScreen() {
     if (loading) return ( <View style={[styles.container, styles.center]}><ActivityIndicator size="large" color={COLORS.accent} /></View> );
 
     return (
-        <SafeAreaView style={styles.container}>
+       <SafeAreaView style={{ flex: 1 }}>
             <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
             
             {/* --- HEADER --- */}
