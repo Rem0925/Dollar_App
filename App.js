@@ -2,8 +2,10 @@ import React from 'react';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { House, ChartLineUp } from 'phosphor-react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import HomeScreen from './src/screens/HomeScreen';
 import ChartScreen from './src/screens/ChartScreen';
+import * as Haptics from 'expo-haptics';
 import { COLORS } from './src/theme';
 
 const Tab = createBottomTabNavigator();
@@ -16,10 +18,11 @@ const MyTheme = {
   },
 };
 
-export default function App() {
+function MainTabs() {
+  const insets = useSafeAreaInsets();
+
   return (
-    <NavigationContainer theme={MyTheme}>
-      <Tab.Navigator
+    <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
           tabBarShowLabel: false,
@@ -31,7 +34,7 @@ export default function App() {
             height: 55, 
             paddingTop: 0, 
             position: 'absolute', 
-            bottom: 15, 
+            bottom: insets.bottom, 
             left: 40,   
             right: 40,
             borderRadius: 25,
@@ -52,6 +55,11 @@ export default function App() {
                     <House weight={focused ? "fill" : "bold"} size={24} color={color} style={{marginTop: 15}} /> 
                 )
             }}
+            listeners={{
+                tabPress: () => {
+                    Haptics.selectionAsync(); 
+                },
+            }}
         />
         <Tab.Screen 
             name="Graficos" 
@@ -61,8 +69,23 @@ export default function App() {
                     <ChartLineUp weight={focused ? "fill" : "bold"} size={24} color={color} style={{marginTop: 15}} />
                 )
             }}
+            listeners={{
+                tabPress: () => {
+                    Haptics.selectionAsync(); 
+                },
+            }}
         />
       </Tab.Navigator>
-    </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+    // 2. Envuelve todo en SafeAreaProvider
+    <SafeAreaProvider>
+      <NavigationContainer theme={MyTheme}>
+        <MainTabs /> 
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }

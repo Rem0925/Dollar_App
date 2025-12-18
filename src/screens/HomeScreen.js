@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-    View, Text, StyleSheet, StatusBar, ActivityIndicator, SafeAreaView, 
-    TouchableOpacity, ScrollView, Animated, Alert, Dimensions, Modal 
+    View, Text, StyleSheet, StatusBar, ActivityIndicator, 
+    TouchableOpacity, ScrollView, Animated, Alert, Dimensions, Modal
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS } from '../theme';
 import { getTasas, getDiasDisponibles } from '../services/api';
 import CurrencyCard from '../components/CurrencyCard';
@@ -13,6 +14,7 @@ import { Calculator, X, ArrowsClockwise, ArrowsLeftRight, ShareNetwork, CaretLef
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
+import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get('window');
 
@@ -53,19 +55,27 @@ export default function HomeScreen() {
     }, [calMonth, calYear, modalVisible]);
 
     const initialLoad = async () => {
+        let cacheLoaded = false; 
         try {
             const cached = await AsyncStorage.getItem('@last_rates');
             if (cached) {
                 setData(JSON.parse(cached));
                 setLoading(false);
+                cacheLoaded = true;
             }
-        } catch (e) { console.log('Error caché', e); }
-        fetchFreshData();
+        } catch (e) { 
+            console.log('Error caché', e); 
+        }
+        fetchFreshData(null, cacheLoaded);
     };
 
-    const fetchFreshData = async (dateString = null) => {
-        if (!data) setLoading(true);
-        else setIsUpdating(true);
+    const fetchFreshData = async (dateString = null, hasLocalData = false) => {
+        const shouldShowFullLoading = dateString ? true : (!data && !hasLocalData);
+        if (shouldShowFullLoading) {
+            setLoading(true); // Pantalla de carga completa (Cargando...)
+        } else {
+            setIsUpdating(true); // Solo el indicador pequeño "ACTUALIZANDO..." arriba
+        }
         
         try {
             const res = await getTasas(dateString);
@@ -82,7 +92,11 @@ export default function HomeScreen() {
             }
         } catch (error) {
             console.error("Error API:", error);
-            Alert.alert("Error", "Error de conexión.");
+            // Si falla la conexión y no tenemos data ni caché, mostramos alerta.
+            // Si ya mostramos el caché, el usuario ni se entera del error intrusivo, solo sigue viendo la data vieja.
+            if (!data && !hasLocalData) {
+                Alert.alert("Error", "No se pudo conectar con el servidor.");
+            }
         } finally {
             setLoading(false);
             setIsUpdating(false);
@@ -107,6 +121,7 @@ export default function HomeScreen() {
     };
 
     const handleDayPress = (day) => {
+        Haptics.selectionAsync();
         const mesFmt = String(calMonth + 1).padStart(2, '0');
         const diaFmt = String(day).padStart(2, '0');
         const fechaFull = `${calYear}-${mesFmt}-${diaFmt}`;
@@ -149,6 +164,7 @@ export default function HomeScreen() {
     };
 
     const toggleCalculator = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         Animated.sequence([
             Animated.timing(fadeAnim, { toValue: 0, duration: 100, useNativeDriver: true }),
             Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true })
@@ -157,7 +173,9 @@ export default function HomeScreen() {
         if (!showCalculator) { setAmount('0'); setBaseCurrency('USD'); }
     };
 
-    const toggleBaseCurrency = () => { setBaseCurrency(prev => prev === 'USD' ? 'VES' : 'USD'); setAmount('0'); };
+    const toggleBaseCurrency = () => { 
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        setBaseCurrency(prev => prev === 'USD' ? 'VES' : 'USD'); setAmount('0'); };
 
     const handleKeyPress = (key) => {
         if (key === 'DEL') { setAmount(prev => prev.length > 1 ? prev.slice(0, -1) : '0'); } 
@@ -209,7 +227,7 @@ export default function HomeScreen() {
     if (loading) return ( <View style={[styles.container, styles.center]}><ActivityIndicator size="large" color={COLORS.accent} /></View> );
 
     return (
-        <SafeAreaView style={styles.container}>
+       <SafeAreaView style={{ flex: 1 }}>
             <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
             
             {/* --- HEADER --- */}
@@ -235,7 +253,8 @@ export default function HomeScreen() {
                     <TouchableOpacity style={styles.iconBtn} onPress={shareRates}>
                         <ShareNetwork color={COLORS.textSecondary} size={20} weight="bold" />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.iconBtn} onPress={() => fetchFreshData(selectedDateStr)}>
+                    <TouchableOpacity style={styles.iconBtn} onPress={() => {Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) 
+                        fetchFreshData(selectedDateStr)}}>
                         <ArrowsClockwise color={COLORS.textSecondary} size={20} />
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.iconBtn, showCalculator && styles.activeBtn]} onPress={toggleCalculator}>
