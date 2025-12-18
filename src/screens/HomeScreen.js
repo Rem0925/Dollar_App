@@ -14,6 +14,7 @@ import { Calculator, X, ArrowsClockwise, ArrowsLeftRight, ShareNetwork, CaretLef
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
+import * as Haptics from 'expo-haptics';
 
 const { width } = Dimensions.get('window');
 
@@ -120,6 +121,7 @@ export default function HomeScreen() {
     };
 
     const handleDayPress = (day) => {
+        Haptics.selectionAsync();
         const mesFmt = String(calMonth + 1).padStart(2, '0');
         const diaFmt = String(day).padStart(2, '0');
         const fechaFull = `${calYear}-${mesFmt}-${diaFmt}`;
@@ -162,6 +164,7 @@ export default function HomeScreen() {
     };
 
     const toggleCalculator = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         Animated.sequence([
             Animated.timing(fadeAnim, { toValue: 0, duration: 100, useNativeDriver: true }),
             Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true })
@@ -170,7 +173,9 @@ export default function HomeScreen() {
         if (!showCalculator) { setAmount('0'); setBaseCurrency('USD'); }
     };
 
-    const toggleBaseCurrency = () => { setBaseCurrency(prev => prev === 'USD' ? 'VES' : 'USD'); setAmount('0'); };
+    const toggleBaseCurrency = () => { 
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        setBaseCurrency(prev => prev === 'USD' ? 'VES' : 'USD'); setAmount('0'); };
 
     const handleKeyPress = (key) => {
         if (key === 'DEL') { setAmount(prev => prev.length > 1 ? prev.slice(0, -1) : '0'); } 
@@ -248,7 +253,8 @@ export default function HomeScreen() {
                     <TouchableOpacity style={styles.iconBtn} onPress={shareRates}>
                         <ShareNetwork color={COLORS.textSecondary} size={20} weight="bold" />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.iconBtn} onPress={() => fetchFreshData(selectedDateStr)}>
+                    <TouchableOpacity style={styles.iconBtn} onPress={() => {Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light) 
+                        fetchFreshData(selectedDateStr)}}>
                         <ArrowsClockwise color={COLORS.textSecondary} size={20} />
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.iconBtn, showCalculator && styles.activeBtn]} onPress={toggleCalculator}>

@@ -30,6 +30,25 @@
       "eas": {
         "projectId": "45e8dcea-412f-4927-949a-f464505783e1"
       }
-    }
+    },
+    "plugins": [
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "DolarWidget", 
+              "label": "Monitor Vzla",
+              "minWidth": "260dp",
+              "minHeight": "110dp",
+              "description": "Tasas del día BCV y Paralelo",
+              "previewImage": "./assets/icon.png",
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 1800000
+            }
+          ]
+        }
+      ]
+    ]
   }
 }

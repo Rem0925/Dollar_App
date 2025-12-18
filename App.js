@@ -5,6 +5,7 @@ import { House, ChartLineUp } from 'phosphor-react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import HomeScreen from './src/screens/HomeScreen';
 import ChartScreen from './src/screens/ChartScreen';
+import * as Haptics from 'expo-haptics';
 import { COLORS } from './src/theme';
 
 const Tab = createBottomTabNavigator();
@@ -54,6 +55,11 @@ function MainTabs() {
                     <House weight={focused ? "fill" : "bold"} size={24} color={color} style={{marginTop: 15}} /> 
                 )
             }}
+            listeners={{
+                tabPress: () => {
+                    Haptics.selectionAsync(); 
+                },
+            }}
         />
         <Tab.Screen 
             name="Graficos" 
@@ -62,6 +68,11 @@ function MainTabs() {
                 tabBarIcon: ({ color, focused }) => (
                     <ChartLineUp weight={focused ? "fill" : "bold"} size={24} color={color} style={{marginTop: 15}} />
                 )
+            }}
+            listeners={{
+                tabPress: () => {
+                    Haptics.selectionAsync(); 
+                },
             }}
         />
       </Tab.Navigator>
