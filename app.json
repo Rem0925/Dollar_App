@@ -37,14 +37,16 @@
         {
           "widgets": [
             {
-              "name": "DolarWidget", 
-              "label": "Monitor Vzla",
-              "minWidth": "260dp",
-              "minHeight": "110dp",
-              "description": "Tasas del día BCV y Paralelo",
-              "previewImage": "./assets/icon.png",
-              "resizeMode": "horizontal|vertical",
-              "updatePeriodMillis": 1800000
+              "name": "DolarWidget",
+              "label": "Monitor Vzla Widget",
+              "configXml": {
+                "minWidth": "150dp",
+                "minHeight": "110dp",
+                "targetCellWidth": 2,
+                "targetCellHeight": 2,
+                "previewImage": "./assets/icon.png",
+                "resizeMode": "horizontal|vertical"
+              }
             }
           ]
         }

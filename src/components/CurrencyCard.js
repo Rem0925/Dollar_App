@@ -1,19 +1,47 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ToastAndroid, Platform } from 'react-native';
 import { COLORS, SIZES } from '../theme';
 import { formatCurrency } from '../utils/helpers';
+import * as Clipboard from 'expo-clipboard'; // Importamos el portapapeles
+import * as Haptics from 'expo-haptics';     // Para dar feedback táctil al copiar
+import { Copy } from 'phosphor-react-native'; // Icono de copiar
 
 export default function CurrencyCard({ title, rate, symbol, color, conversionMode, calculatedValue, resultSymbol, variant = 'full', style, showRate = false }) {
     
-    // --- DISEÑO MINI (CARRUSEL) ---
+    // Función para copiar el monto calculado
+    const handleCopy = async () => {
+        if (calculatedValue) {
+            const valueToCopy = formatCurrency(calculatedValue);
+            await Clipboard.setStringAsync(valueToCopy);
+            await Haptics.selectionAsync(); // Pequeña vibración para confirmar
+
+            // MENSAJE VISUAL (Toast)
+            if (Platform.OS === 'android') {
+                // Muestra el mensaje nativo de Android abajo
+                ToastAndroid.show('Copiado al portapapeles', ToastAndroid.SHORT);
+            }
+        }
+    };
+
+    // --- DISEÑO MINI (CARRUSEL / CALCULADORA) ---
     if (variant === 'mini') {
         return (
-            <View style={[styles.miniContainer, { borderTopColor: color }, style]}>
-                <View style={styles.miniHeader}>
-                    <View style={[styles.miniIcon, { backgroundColor: color + '20' }]}>
-                        <Text style={{ fontSize: 16 }}>{symbol}</Text>
+            <TouchableOpacity 
+                style={[styles.miniContainer, { borderTopColor: color }, style]}
+                onPress={handleCopy}
+                activeOpacity={0.7}
+            >
+                {/* Header modificado para incluir el icono a la derecha */}
+                <View style={[styles.miniHeader, { justifyContent: 'space-between' }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View style={[styles.miniIcon, { backgroundColor: color + '20' }]}>
+                            <Text style={{ fontSize: 16 }}>{symbol}</Text>
+                        </View>
+                        <Text style={[styles.miniTitle, {color: color}]}>{title.split(' ')[0]}</Text>
                     </View>
-                    <Text style={[styles.miniTitle, {color: color}]}>{title.split(' ')[0]}</Text>
+                    
+                    {/* Icono pequeño de Copiar */}
+                    <Copy size={14} color={color} weight="bold" />
                 </View>
                 
                 <View style={styles.miniBody}>
@@ -25,7 +53,7 @@ export default function CurrencyCard({ title, rate, symbol, color, conversionMod
                         </Text>
                     </View>
                 </View>
-            </View>
+            </TouchableOpacity>
         );
     }
 

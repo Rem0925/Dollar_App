@@ -138,23 +138,45 @@ export default function HomeScreen() {
     };
 
     const fixDate = (dateString, justDate = false) => {
-        if (!dateString) return 'Cargando...';
-        const match = dateString.match(/(\d{2})\/(\d{2})\/(\d{2}).*?(\d{1,2}):(\d{2})/);
+    if (!dateString) return 'Cargando...';
+    
+    // Capturamos los grupos: DD/MM/YY ... HH:mm
+    const match = dateString.match(/(\d{2})\/(\d{2})\/(\d{2}).*?(\d{1,2}):(\d{2})/);
 
-        if (match) {
-            const [_, day, month, year, hour, minute] = match;
-            const d = new Date(2000 + parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
-            d.setHours(d.getHours() + 8);
-            
-            if (justDate) {
-                return d.toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: '2-digit' });
-            }
-            return d.toLocaleString('es-VE', { 
-                day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute:'2-digit', hour12: true 
-            });
+    if (match) {
+        const [_, day, month, year, hour, minute] = match;
+        
+        // 1. Creamos la fecha indicando que los valores vienen de un servidor en UTC
+        // Date.UTC usa meses de 0 a 11
+        const utcDate = new Date(Date.UTC(
+            2000 + parseInt(year), 
+            parseInt(month) - 1, 
+            parseInt(day), 
+            parseInt(hour), 
+            parseInt(minute)
+        ));
+
+        // 2. Convertimos a hora de Venezuela (UTC-4)
+        // Restamos 4 horas (4 * 60 * 60 * 1000 milisegundos)
+        const venezuelaTime = new Date(utcDate.getTime() - (4 * 60 * 60 * 1000));
+        
+        if (justDate) {
+            // Extraemos los componentes ya ajustados a la zona horaria de Vzla
+            const dStr = String(venezuelaTime.getUTCDate()).padStart(2, '0');
+            const mStr = String(venezuelaTime.getUTCMonth() + 1).padStart(2, '0');
+            const yStr = String(venezuelaTime.getUTCFullYear()).slice(-2);
+            return `${dStr}/${mStr}/${yStr}`;
         }
-        return dateString;
-    };
+        
+        // Retornamos el formato completo ajustado
+        return venezuelaTime.toLocaleString('es-VE', { 
+            day: '2-digit', month: '2-digit', year: '2-digit', 
+            hour: '2-digit', minute:'2-digit', hour12: true,
+            timeZone: 'UTC' // Usamos UTC aquí porque ya restamos las 4 horas manualmente
+        });
+    }
+    return dateString;
+};
 
     const shareRates = async () => {
         try {
