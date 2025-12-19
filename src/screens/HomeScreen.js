@@ -11,6 +11,7 @@ import {
   Alert,
   Dimensions,
   Modal,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../theme";
@@ -370,6 +371,14 @@ export default function HomeScreen() {
           <ScrollView
             style={styles.scrollArea}
             contentContainerStyle={{ paddingBottom: 100 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={isUpdating} // Usamos isUpdating para que no desaparezca la pantalla
+                onRefresh={() => fetchFreshData(selectedDateStr)} 
+                tintColor={COLORS.accent} // Color de la espiral en iOS
+                colors={[COLORS.cardBg, COLORS.binance]} // Colores en Android
+              />
+            }
           >
             <Animated.View style={{ opacity: fadeAnim, padding: 20 }}>
               {selectedDateStr && (

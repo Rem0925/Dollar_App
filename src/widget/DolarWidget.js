@@ -4,6 +4,7 @@ import { FlexWidget, TextWidget } from "react-native-android-widget";
 export function DolarWidget({ bcv, binance, lastUpdate }) {
   return (
     <FlexWidget
+      clickAction="OPEN_APP"
       style={{
         height: "match_parent",
         width: "match_parent",
@@ -11,7 +12,7 @@ export function DolarWidget({ bcv, binance, lastUpdate }) {
         borderRadius: 16,
         flexDirection: "column",
         justifyContent: "center",
-        paddingHorizontal: 8, // Reducido para ahorrar espacio lateral
+        paddingHorizontal: 8,
         paddingVertical: 10,
         borderWidth: 2,
         borderColor: "#333333",
@@ -29,7 +30,7 @@ export function DolarWidget({ bcv, binance, lastUpdate }) {
       >
         <TextWidget
           text="Monitor Vzla"
-          style={{ fontSize: 12, color: "#FFFFFF", fontWeight: "bold" }} // Fuente más pequeña
+          style={{ fontSize: 12, color: "#FFFFFF", fontWeight: "bold" }}
         />
         <TextWidget
           text={lastUpdate}
