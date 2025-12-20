@@ -8,105 +8,101 @@ export function DolarWidget({ bcv, binance, lastUpdate }) {
       style={{
         height: "match_parent",
         width: "match_parent",
-        backgroundColor: "#1E1E1E",
-        borderRadius: 16,
+        backgroundColor: "#1E1E1E", // COLORS.cardBg
+        borderRadius: 22, // Bordes un poco más redondeados
         flexDirection: "column",
-        justifyContent: "center",
-        paddingHorizontal: 8,
-        paddingVertical: 10,
-        borderWidth: 2,
-        borderColor: "#333333",
+        justifyContent: "space-between", // Esto elimina los espacios vacíos forzados
+        padding: 14,
       }}
     >
-      {/* HEADER COMPACTO */}
+      {/* HEADER: Título y Fecha */}
       <FlexWidget
         style={{
           flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: 6,
           width: "match_parent",
         }}
       >
-        <TextWidget
-          text="Monitor Vzla"
-          style={{ fontSize: 12, color: "#FFFFFF", fontWeight: "bold" }}
-        />
+        <FlexWidget style={{ flexDirection: "row", alignItems: "center" }}>
+          {/* Pequeño punto indicador de "Live" o activo */}
+          <FlexWidget
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: 3,
+              backgroundColor: "#10B981", // COLORS.accent
+              marginRight: 6,
+            }}
+          />
+          <TextWidget
+            text="Monitor Vzla"
+            style={{
+              fontSize: 13,
+              color: "#A0A0A0", // COLORS.textSecondary
+              fontWeight: "bold",
+            }}
+          />
+        </FlexWidget>
+
         <TextWidget
           text={lastUpdate}
-          style={{ fontSize: 10, color: "#888888" }}
+          style={{ fontSize: 11, color: "#666666" }}
         />
       </FlexWidget>
 
-      {/* Separador sutil */}
+      {/* CONTENEDOR DE PRECIOS: Ocupa el espacio central */}
       <FlexWidget
         style={{
-          height: 1,
-          width: "match_parent",
-          backgroundColor: "#333333",
-          marginBottom: 8,
-        }}
-      />
-
-      {/* Fila BCV */}
-      <FlexWidget
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 4,
-          width: "match_parent",
+          flexDirection: "column",
+          justifyContent: "space-around", // Distribuye los precios equitativamente
+          height: "match_parent", // Usa el espacio disponible verticalmente
+          paddingVertical: 4,
         }}
       >
-        <FlexWidget style={{ flexDirection: "row", alignItems: "center" }}>
-          <FlexWidget
-            style={{
-              width: 3,
-              height: 12,
-              backgroundColor: "#2ecc71",
-              marginRight: 6,
-              borderRadius: 2,
-            }}
-          />
+        {/* Fila BCV */}
+        <FlexWidget
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <TextWidget
             text="BCV"
-            style={{ fontSize: 12, color: "#CCCCCC", fontWeight: "bold" }}
-          />
-        </FlexWidget>
-        <TextWidget
-          text={`${bcv}`}
-          style={{ fontSize: 15, color: "#FFFFFF", fontWeight: "bold" }}
-        />
-      </FlexWidget>
-
-      {/* Fila Binance */}
-      <FlexWidget
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          width: "match_parent",
-        }}
-      >
-        <FlexWidget style={{ flexDirection: "row", alignItems: "center" }}>
-          <FlexWidget
-            style={{
-              width: 3,
-              height: 12,
-              backgroundColor: "#f1c40f",
-              marginRight: 6,
-              borderRadius: 2,
-            }}
+            style={{ fontSize: 16, color: "#FFFFFF", fontWeight: "bold" }}
           />
           <TextWidget
-            text="Binance"
-            style={{ fontSize: 12, color: "#CCCCCC", fontWeight: "bold" }}
+            text={` ${bcv}`}
+            style={{
+              fontSize: 24, // Número grande
+              color: "#10B981", // COLORS.bcv
+              fontWeight: "bold",
+            }}
           />
         </FlexWidget>
-        <TextWidget
-          text={`${binance}`}
-          style={{ fontSize: 15, color: "#FFFFFF", fontWeight: "bold" }}
-        />
+
+        {/* Fila Binance */}
+        <FlexWidget
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <TextWidget
+            text="Binance"
+            style={{ fontSize: 16, color: "#FFFFFF", fontWeight: "bold" }}
+          />
+          <TextWidget
+            text={` ${binance}`}
+            style={{
+              fontSize: 24, // Número grande
+              color: "#FBBF24", // COLORS.binance
+              fontWeight: "bold",
+            }}
+          />
+        </FlexWidget>
       </FlexWidget>
     </FlexWidget>
   );

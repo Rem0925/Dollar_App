@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -18,7 +18,6 @@ import { COLORS } from "../theme";
 import { getTasas, getDiasDisponibles } from "../services/api";
 import CurrencyCard from "../components/CurrencyCard";
 import NumPad from "../components/NumPad";
-import { formatInput } from "../utils/helpers";
 // Iconos
 import {
   Calculator,
@@ -36,6 +35,43 @@ import * as Sharing from "expo-sharing";
 import * as Haptics from "expo-haptics";
 
 const { width } = Dimensions.get("window");
+
+// --- COMPONENTE SKELETON (LOCAL) ---
+const SkeletonItem = ({ width, height, style }) => {
+  const opacity = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 0.7,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.3,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <Animated.View
+      style={[
+        {
+          opacity,
+          backgroundColor: COLORS.cardBg,
+          borderRadius: 12,
+          width: width,
+          height: height,
+        },
+        style,
+      ]}
+    />
+  );
+};
 
 export default function HomeScreen() {
   const [data, setData] = useState(null);
@@ -60,7 +96,6 @@ export default function HomeScreen() {
   const hiddenCaptureRef = useRef();
 
   // --- CÁLCULO DEL PROMEDIO ---
-  // Se calcula dinámicamente si hay data
   const promedioRate = data
     ? (parseFloat(data.bcv) + parseFloat(data.binance)) / 2
     : 0;
@@ -93,9 +128,9 @@ export default function HomeScreen() {
   const fetchFreshData = async (dateString = null, hasLocalData = false) => {
     const shouldShowFullLoading = dateString ? true : !data && !hasLocalData;
     if (shouldShowFullLoading) {
-      setLoading(true); // Pantalla de carga completa (Cargando...)
+      setLoading(true);
     } else {
-      setIsUpdating(true); // Solo el indicador pequeño "ACTUALIZANDO..." arriba
+      setIsUpdating(true);
     }
 
     try {
@@ -113,8 +148,6 @@ export default function HomeScreen() {
       }
     } catch (error) {
       console.error("Error API:", error);
-      // Si falla la conexión y no tenemos data ni caché, mostramos alerta.
-      // Si ya mostramos el caché, el usuario ni se entera del error intrusivo, solo sigue viendo la data vieja.
       if (!data && !hasLocalData) {
         Alert.alert("Error", "No se pudo conectar con el servidor.");
       }
@@ -124,7 +157,6 @@ export default function HomeScreen() {
     }
   };
 
-  // --- CALENDARIO LOGIC ---
   const cargarDiasCalendario = async () => {
     setLoadingCalendar(true);
     const dias = await getDiasDisponibles(calMonth, calYear);
@@ -165,19 +197,11 @@ export default function HomeScreen() {
 
   const fixDate = (dateString, justDate = false) => {
     if (!dateString) return "Cargando...";
-
-    // Si solo necesitamos la fecha (DD/MM/YY), cortamos el string
     if (justDate) {
-      // Busca el patrón DD/MM/YY y lo retorna
       const match = dateString.match(/(\d{2}\/\d{2}\/\d{2})/);
       if (match) return match[0];
-
-      // Fallback: devuelve solo la primera parte antes del espacio/coma
       return dateString.split(/[ ,]+/)[0];
     }
-
-    // Si necesitamos fecha y hora completa, devolvemos el string tal cual
-    // (Ya viene formateado y con la hora correcta desde el servidor)
     return dateString;
   };
 
@@ -222,6 +246,10 @@ export default function HomeScreen() {
   };
 
   const handleKeyPress = (key) => {
+    if (key === "CLEAR") {
+      setAmount("0");
+      return;
+    }
     if (key === "DEL") {
       setAmount((prev) => (prev.length > 1 ? prev.slice(0, -1) : "0"));
     } else {
@@ -234,20 +262,30 @@ export default function HomeScreen() {
   const parseAmount = () =>
     parseFloat(amount.replace(/\./g, "").replace(",", ".")) || 0;
 
-  const getFormattedDisplay = () => {
+  // --- OPTIMIZACIÓN 1: Display Value ---
+  const displayValue = useMemo(() => {
     if (!amount) return "0";
     const parts = amount.split(",");
     const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     if (parts.length > 1) return `${integerPart},${parts[1]}`;
     return integerPart + (amount.endsWith(",") ? "," : "");
-  };
+  }, [amount]);
 
-  const calculate = (rate) => {
-    const val = parseAmount();
-    const rateVal = parseFloat(rate);
-    if (!val || !rateVal) return 0;
-    return baseCurrency === "USD" ? val * rateVal : val / rateVal;
-  };
+  // --- OPTIMIZACIÓN 2: Cálculos ---
+  const calculatedValues = useMemo(() => {
+    const val = parseFloat(amount.replace(/\./g, "").replace(",", ".")) || 0;
+    const calc = (rate) => {
+      const rateVal = parseFloat(rate);
+      if (!val || !rateVal) return 0;
+      return baseCurrency === "USD" ? val * rateVal : val / rateVal;
+    };
+    return {
+      bcv: calc(data?.bcv),
+      binance: calc(data?.binance),
+      promedio: calc(promedioRate),
+      euro: calc(data?.euro),
+    };
+  }, [amount, baseCurrency, data, promedioRate]);
 
   const renderCalendarGrid = () => {
     const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
@@ -273,13 +311,88 @@ export default function HomeScreen() {
     return grid;
   };
 
+  // --- PANTALLA DE CARGA (SKELETON) ---
   if (loading)
     return (
-      <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color={COLORS.accent} />
+      <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor={COLORS.background}
+        />
+        {/* Skeleton Header */}
+        <View style={styles.header}>
+          <View>
+            <SkeletonItem width={140} height={26} style={{ marginBottom: 8 }} />
+            <SkeletonItem width={100} height={16} />
+          </View>
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <SkeletonItem width={38} height={38} style={{ borderRadius: 12 }} />
+            <SkeletonItem width={38} height={38} style={{ borderRadius: 12 }} />
+            <SkeletonItem width={38} height={38} style={{ borderRadius: 12 }} />
+          </View>
+        </View>
+
+        {/* Skeleton Body (Cards) */}
+        <View style={{ padding: 20 }}>
+          <SkeletonItem width={120} height={14} style={{ marginBottom: 15 }} />
+          {[1, 2, 3, 4].map((i) => (
+            <SkeletonItem
+              key={i}
+              width={"100%"}
+              height={90}
+              style={{ marginBottom: 12, borderRadius: 18 }}
+            />
+          ))}
+        </View>
+      </SafeAreaView>
+    );
+  if (!data && !loading) {
+    return (
+      <View style={[styles.container, styles.center, { padding: 40 }]}>
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor={COLORS.background}
+        />
+        <ArrowsClockwise
+          size={48}
+          color={COLORS.textSecondary}
+          style={{ marginBottom: 20 }}
+        />
+        <Text
+          style={{
+            color: COLORS.textPrimary,
+            fontSize: 18,
+            fontWeight: "bold",
+            textAlign: "center",
+            marginBottom: 10,
+          }}
+        >
+          Sin conexión
+        </Text>
+        <Text
+          style={{
+            color: COLORS.textSecondary,
+            textAlign: "center",
+            marginBottom: 30,
+          }}
+        >
+          No pudimos cargar las tasas. Verifica tu internet e inténtalo de
+          nuevo.
+        </Text>
+        <TouchableOpacity
+          onPress={() => fetchFreshData(null)}
+          style={{
+            backgroundColor: COLORS.accent,
+            paddingHorizontal: 30,
+            paddingVertical: 12,
+            borderRadius: 25,
+          }}
+        >
+          <Text style={{ color: "white", fontWeight: "bold" }}>Reintentar</Text>
+        </TouchableOpacity>
       </View>
     );
-
+  }
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
@@ -373,10 +486,11 @@ export default function HomeScreen() {
             contentContainerStyle={{ paddingBottom: 100 }}
             refreshControl={
               <RefreshControl
-                refreshing={isUpdating} // Usamos isUpdating para que no desaparezca la pantalla
-                onRefresh={() => fetchFreshData(selectedDateStr)} 
-                tintColor={COLORS.accent} // Color de la espiral en iOS
-                colors={[COLORS.cardBg, COLORS.binance]} // Colores en Android
+                refreshing={isUpdating}
+                onRefresh={() => fetchFreshData(selectedDateStr)}
+                tintColor={COLORS.accent}
+                colors={[COLORS.accent, COLORS.binance]}
+                progressBackgroundColor={COLORS.cardBg}
               />
             }
           >
@@ -449,7 +563,7 @@ export default function HomeScreen() {
                 numberOfLines={1}
                 adjustsFontSizeToFit
               >
-                {baseCurrency === "USD" ? "$" : "Bs"} {getFormattedDisplay()}
+                {baseCurrency === "USD" ? "$" : "Bs"} {displayValue}
               </Text>
             </View>
 
@@ -469,7 +583,7 @@ export default function HomeScreen() {
                   color={COLORS.bcv}
                   conversionMode={true}
                   resultSymbol={baseCurrency === "USD" ? "Bs" : "$"}
-                  calculatedValue={calculate(data?.bcv)}
+                  calculatedValue={calculatedValues.bcv}
                 />
                 <CurrencyCard
                   variant="mini"
@@ -478,9 +592,8 @@ export default function HomeScreen() {
                   color={COLORS.binance}
                   conversionMode={true}
                   resultSymbol={baseCurrency === "USD" ? "Bs" : "USDT"}
-                  calculatedValue={calculate(data?.binance)}
+                  calculatedValue={calculatedValues.binance}
                 />
-                {/* Promedio en Calculadora Restaurado */}
                 <CurrencyCard
                   variant="mini"
                   title="Promedio"
@@ -488,7 +601,7 @@ export default function HomeScreen() {
                   color={COLORS.promedio}
                   conversionMode={true}
                   resultSymbol={baseCurrency === "USD" ? "Bs" : "$"}
-                  calculatedValue={calculate(promedioRate)}
+                  calculatedValue={calculatedValues.promedio}
                 />
                 <CurrencyCard
                   variant="mini"
@@ -497,7 +610,7 @@ export default function HomeScreen() {
                   color={COLORS.euro}
                   conversionMode={true}
                   resultSymbol={baseCurrency === "USD" ? "Bs" : "€"}
-                  calculatedValue={calculate(data?.euro)}
+                  calculatedValue={calculatedValues.euro}
                 />
               </ScrollView>
             </View>
@@ -606,7 +719,7 @@ export default function HomeScreen() {
                 {baseCurrency === "USD" ? "USD A BOLÍVARES" : "BOLÍVARES A USD"}
               </Text>
               <Text style={[styles.inputValue, { marginTop: 0, fontSize: 40 }]}>
-                {baseCurrency === "USD" ? "$" : "Bs"} {getFormattedDisplay()}
+                {baseCurrency === "USD" ? "$" : "Bs"} {displayValue}
               </Text>
             </View>
             <CurrencyCard
@@ -617,7 +730,7 @@ export default function HomeScreen() {
               conversionMode={true}
               showRate={true}
               resultSymbol={baseCurrency === "USD" ? "Bs" : "$"}
-              calculatedValue={calculate(data?.bcv)}
+              calculatedValue={calculatedValues.bcv}
             />
             <CurrencyCard
               title="Binance P2P"
@@ -627,7 +740,7 @@ export default function HomeScreen() {
               conversionMode={true}
               showRate={true}
               resultSymbol={baseCurrency === "USD" ? "Bs" : "USDT"}
-              calculatedValue={calculate(data?.binance)}
+              calculatedValue={calculatedValues.binance}
             />
             <CurrencyCard
               title="Promedio"
@@ -637,7 +750,7 @@ export default function HomeScreen() {
               conversionMode={true}
               showRate={true}
               resultSymbol={baseCurrency === "USD" ? "Bs" : "$"}
-              calculatedValue={calculate(promedioRate)}
+              calculatedValue={calculatedValues.promedio}
             />
             <CurrencyCard
               title="Euro (BCV)"
@@ -647,7 +760,7 @@ export default function HomeScreen() {
               conversionMode={true}
               showRate={true}
               resultSymbol={baseCurrency === "USD" ? "Bs" : "€"}
-              calculatedValue={calculate(data?.euro)}
+              calculatedValue={calculatedValues.euro}
             />
           </View>
         ) : (

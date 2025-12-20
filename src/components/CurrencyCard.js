@@ -36,6 +36,9 @@ export default function CurrencyCard({
       if (Platform.OS === "android") {
         // Muestra el mensaje nativo de Android abajo
         ToastAndroid.show("Copiado al portapapeles", ToastAndroid.SHORT);
+      } else {
+        // Para iOS u otras plataformas, usamos una alerta simple
+        Alert.alert("Copiado", `Monto: ${valueToCopy}`);
       }
     }
   };

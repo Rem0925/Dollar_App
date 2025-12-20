@@ -23,6 +23,13 @@ export default function NumPad({ onPress }) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onPress(k);
   };
+  const handleLongPress = (k) => {
+    if (k === "DEL") {
+      // Vibración diferente (Success) para indicar que se borró todo
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      onPress("CLEAR"); // Enviamos la señal especial "CLEAR"
+    }
+  };
 
   return (
     <View style={styles.grid}>
@@ -32,6 +39,8 @@ export default function NumPad({ onPress }) {
           style={[styles.key, { width: keyWidth, height: keyHeight }]}
           // 3. Usar la nueva función
           onPress={() => handlePress(k)}
+          onLongPress={() => handleLongPress(k)}
+          delayLongPress={400}
           activeOpacity={0.5}
         >
           {k === "DEL" ? (
