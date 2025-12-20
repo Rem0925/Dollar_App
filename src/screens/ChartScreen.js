@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -6,13 +6,13 @@ import {
   Dimensions,
   ActivityIndicator,
   ScrollView,
+  Animated,
 } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
 import { COLORS } from "../theme";
 import { getHistorial } from "../services/api";
 import { formatCurrency } from "../utils/helpers";
 import { SafeAreaView } from "react-native-safe-area-context";
-// Importamos iconos, agregando 'ArrowsDownUp' para el Rango
 import {
   TrendUp,
   CalendarPlus,
@@ -23,20 +23,56 @@ import {
 const { width } = Dimensions.get("window");
 const PROMEDIO_COLOR = "#8e44ad";
 
+// --- COMPONENTE SKELETON (LOCAL) ---
+const SkeletonItem = ({ width, height, style }) => {
+  const opacity = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 0.7,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.3,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <Animated.View
+      style={[
+        {
+          opacity,
+          backgroundColor: COLORS.cardBg,
+          borderRadius: 12,
+          width: width,
+          height: height,
+        },
+        style,
+      ]}
+    />
+  );
+};
+
 export default function ChartScreen() {
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [yAxisOffset, setYAxisOffset] = useState(0);
 
-  // Estado ampliado con la nueva métrica (minMax)
   const [periodStats, setPeriodStats] = useState({
     avgGapPercent: 0,
     avgGapAmount: 0,
     avgDailyRise: 0,
     totalMonthRise: 0,
     totalMonthPct: 0,
-    minPrice: 0, // Nuevo
-    maxPrice: 0, // Nuevo
+    minPrice: 0,
+    maxPrice: 0,
   });
 
   const [currentValues, setCurrentValues] = useState({
@@ -119,7 +155,6 @@ export default function ChartScreen() {
       allValues.push(lastBCV, lastBinance, lastEuro, avgVal);
     }
 
-    // --- CÁLCULOS ESTADÍSTICOS ---
     let dailyIncreases = 0;
     let daysCounted = 0;
     const bcvValues = bcvData.map((d) => d.value);
@@ -137,7 +172,6 @@ export default function ChartScreen() {
     const totalMonthPct =
       bcvData[0].value > 0 ? (totalMonthRise / bcvData[0].value) * 100 : 0;
 
-    // NUEVO: Mínimo y Máximo del periodo
     const minPrice = Math.min(...bcvValues);
     const maxPrice = Math.max(...bcvValues);
 
@@ -200,8 +234,8 @@ export default function ChartScreen() {
       avgDailyRise,
       totalMonthRise,
       totalMonthPct,
-      minPrice, // <---
-      maxPrice, // <---
+      minPrice,
+      maxPrice,
     });
 
     setCurrentValues({
@@ -215,16 +249,35 @@ export default function ChartScreen() {
     setLoading(false);
   };
 
-  // Cálculos dinámicos para la tarjeta de Brecha
   const gapAmount = currentValues.binance - currentValues.bcv;
   const gapPercent =
     currentValues.bcv > 0 ? (gapAmount / currentValues.bcv) * 100 : 0;
 
+  // --- SKELETON LOADING ---
   if (loading)
     return (
-      <View style={styles.center}>
-        <ActivityIndicator color={COLORS.accent} />
-      </View>
+      <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.background }}>
+        <View style={styles.header}>
+          <SkeletonItem width={180} height={28} style={{ marginBottom: 6 }} />
+          <SkeletonItem width={100} height={14} />
+        </View>
+
+        {/* Chart Area Skeleton */}
+        <View style={{ alignItems: "center", marginTop: 20 }}>
+          <SkeletonItem width={width - 40} height={240} />
+        </View>
+
+        {/* Stats Grid Skeleton */}
+        <View style={styles.statsContainer}>
+          <SkeletonItem width={150} height={14} style={{ marginBottom: 15 }} />
+          <View style={styles.grid}>
+            <SkeletonItem width="48%" height={100} />
+            <SkeletonItem width="48%" height={100} />
+            <SkeletonItem width="48%" height={100} />
+            <SkeletonItem width="48%" height={100} />
+          </View>
+        </View>
+      </SafeAreaView>
     );
 
   return (
@@ -237,7 +290,7 @@ export default function ChartScreen() {
             Datos del {currentValues.date}
           </Text>
         </View>
-        {/* LEYENDA DINÁMICA (Justo debajo del gráfico para referencia rápida) */}
+        {/* LEYENDA DINÁMICA */}
         <View style={styles.legendContainer}>
           <LegendItem
             label="BCV"
@@ -293,15 +346,21 @@ export default function ChartScreen() {
                 const itemPromedio = items[2];
                 const itemEuro = items[3];
 
-                setTimeout(() => {
-                  setCurrentValues({
-                    date: itemBCV.date,
-                    bcv: itemBCV.originalValue,
-                    binance: itemBinance?.originalValue || 0,
-                    promedio: itemPromedio?.originalValue || 0,
-                    euro: itemEuro?.originalValue || 0,
-                  });
-                }, 0);
+                // --- OPTIMIZACIÓN CLAVE ---
+                // Solo actualizamos el estado si la fecha ha cambiado.
+                // Esto evita re-renderizados infinitos al mantener el dedo quieto.
+                if (itemBCV.date !== currentValues.date) {
+                  // Usamos setTimeout para salir del ciclo de render actual
+                  setTimeout(() => {
+                    setCurrentValues({
+                      date: itemBCV.date,
+                      bcv: itemBCV.originalValue,
+                      binance: itemBinance?.originalValue || 0,
+                      promedio: itemPromedio?.originalValue || 0,
+                      euro: itemEuro?.originalValue || 0,
+                    });
+                  }, 0);
+                }
 
                 return (
                   <View style={styles.tooltip}>
@@ -313,7 +372,7 @@ export default function ChartScreen() {
           />
         </View>
 
-        {/* 3. PANEL DE ESTADÍSTICAS (GRID 2x2) - TODO ORGANIZADO ABAJO */}
+        {/* 3. PANEL DE ESTADÍSTICAS */}
         <View style={styles.statsContainer}>
           <Text style={styles.sectionTitle}>
             MÉTRICAS DEL PERIODO (30 DÍAS / BCV)
@@ -483,7 +542,7 @@ const styles = StyleSheet.create({
   lValue: { color: COLORS.textPrimary, fontSize: 12, fontWeight: "bold" },
 
   // Sección de Stats (Grid)
-  statsContainer: { paddingHorizontal: 20, paddingBottom: 20 },
+  statsContainer: { paddingHorizontal: 20, paddingBottom: 20, paddingTop: 10 },
   sectionTitle: {
     color: COLORS.textSecondary,
     fontSize: 10,
@@ -529,7 +588,7 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
     fontSize: 14,
     fontWeight: "800",
-  }, // Para el rango que son 2 números
+  },
   statSubValue: {
     color: COLORS.textSecondary,
     fontSize: 11,
