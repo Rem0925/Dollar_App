@@ -400,7 +400,7 @@ export default function HomeScreen() {
       {/* --- HEADER --- */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.brand}>Monitor Vzla</Text>
+          <Text style={styles.brand}>VeGreen</Text>
           {isUpdating ? (
             <View
               style={{
@@ -697,7 +697,7 @@ export default function HomeScreen() {
         collapsable={false}
       >
         <View style={styles.captureHeader}>
-          <Text style={styles.captureBrand}>Monitor Vzla</Text>
+          <Text style={styles.captureBrand}>VeGreen</Text>
           <Text style={styles.captureDate}>{fixDate(data?.fecha, true)}</Text>
         </View>
 
@@ -795,7 +795,7 @@ export default function HomeScreen() {
             />
           </View>
         )}
-        <Text style={styles.footerText}>Generado por Monitor Vzla App</Text>
+        <Text style={styles.footerText}>Generado por VeGreen</Text>
       </View>
     </SafeAreaView>
   );
