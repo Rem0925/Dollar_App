@@ -1,30 +1,27 @@
 {
   "expo": {
-    "name": "DolarMonitorApp",
-    "slug": "DolarMonitorApp",
+    "name": "VeGreen",
+    "slug": "vegreen",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/SplashScreen.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#121212"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
-      "package": "com.REM_25.monitordolar",
+      "package": "com.REM_25.vegreen",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#121212"
       },
       "edgeToEdgeEnabled": false
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
@@ -37,12 +34,14 @@
         {
           "widgets": [
             {
-              "name": "DolarWidget",
-              "label": "Monitor Vzla",
-              "description": "Tasas del día BCV y Paralelo",
+              "name": "VeGreenWidget",
+              "label": "VeGreen",
+              "description": "Tasas del día",
               "previewImage": "./assets/icon.png",
               "resizeMode": "horizontal|vertical",
-              "updatePeriodMillis": 1800000
+              "updatePeriodMillis": 1800000,
+              "minWidth": "60dp", 
+              "minHeight": "60dp"
             }
           ]
         }
