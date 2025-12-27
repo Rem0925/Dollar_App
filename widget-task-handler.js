@@ -6,7 +6,7 @@ import { getTasas } from "./src/services/api";
 export async function widgetTaskHandler(props) {
   const widgetInfo = props.widgetInfo;
 
-  if (widgetInfo.widgetName === "DolarWidget") {
+  if (widgetInfo.widgetName === "VeGreenWidget") {
     // Función auxiliar para formatear y pintar
     const renderWithData = (data, statusText) => {
       const bcvVal = data?.bcv ? parseFloat(data.bcv).toFixed(2) : "--";
