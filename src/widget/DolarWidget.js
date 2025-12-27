@@ -36,7 +36,7 @@ export function DolarWidget({ bcv, binance, lastUpdate }) {
             }}
           />
           <TextWidget
-            text="Monitor Vzla"
+            text="VeGreen Dólar"
             style={{
               fontSize: 13,
               color: "#A0A0A0", // COLORS.textSecondary

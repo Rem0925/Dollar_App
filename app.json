@@ -23,11 +23,6 @@
       },
       "edgeToEdgeEnabled": false
     },
-    "extra": {
-      "eas": {
-        "projectId": "45e8dcea-412f-4927-949a-f464505783e1"
-      }
-    },
     "plugins": [
       [
         "react-native-android-widget",
@@ -37,15 +32,21 @@
               "name": "VeGreenWidget",
               "label": "VeGreen",
               "description": "Tasas del día",
-              "previewImage": "./assets/icon.png",
+              "previewImage": "./assets/Widget-Icon.png",
               "resizeMode": "horizontal|vertical",
               "updatePeriodMillis": 1800000,
-              "minWidth": "60dp", 
-              "minHeight": "60dp"
+              "minWidth": "150dp",
+              "minHeight": "110dp"
             }
           ]
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "99fa41d4-4976-4314-a021-87a72980b100"
+      }
+    },
+    "owner": "rem_25"
   }
 }
