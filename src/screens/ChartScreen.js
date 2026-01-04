@@ -91,7 +91,16 @@ export default function ChartScreen() {
     const rawData = await getHistorial();
     const dataMap = {};
     rawData.forEach((item) => {
-      dataMap[item.fecha] = item;
+      if (item.fecha) {
+        const parts = item.fecha.split('/');
+        if (parts.length === 2) {
+            // padStart(2, '0') convierte "1" en "01"
+            const day = parts[0].padStart(2, '0');
+            const month = parts[1].padStart(2, '0');
+            const normalizedKey = `${day}/${month}`;
+            dataMap[normalizedKey] = item;
+        }
+      }
     });
 
     const bcvData = [];
@@ -113,7 +122,7 @@ export default function ChartScreen() {
       d.setDate(d.getDate() - i);
       const day = String(d.getDate()).padStart(2, "0");
       const month = String(d.getMonth() + 1).padStart(2, "0");
-      const dateLabel = `${day}/${month}`;
+      const dateLabel = `${day}/${month}`;  
       const key = dateLabel;
 
       if (dataMap[key]) {
@@ -346,11 +355,7 @@ export default function ChartScreen() {
                 const itemPromedio = items[2];
                 const itemEuro = items[3];
 
-                // --- OPTIMIZACIÓN CLAVE ---
-                // Solo actualizamos el estado si la fecha ha cambiado.
-                // Esto evita re-renderizados infinitos al mantener el dedo quieto.
                 if (itemBCV.date !== currentValues.date) {
-                  // Usamos setTimeout para salir del ciclo de render actual
                   setTimeout(() => {
                     setCurrentValues({
                       date: itemBCV.date,
