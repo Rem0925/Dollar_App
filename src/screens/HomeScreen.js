@@ -12,6 +12,7 @@ import {
   Dimensions,
   Modal,
   RefreshControl,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../theme";
@@ -35,6 +36,9 @@ import * as Sharing from "expo-sharing";
 import * as Haptics from "expo-haptics";
 
 const { width } = Dimensions.get("window");
+
+// --- Referencia al archivo del logo ---
+const LogoSource = require("../../assets/icon.png");
 
 // --- COMPONENTE SKELETON (LOCAL) ---
 const SkeletonItem = ({ width, height, style }) => {
@@ -322,7 +326,10 @@ export default function HomeScreen() {
         {/* Skeleton Header */}
         <View style={styles.header}>
           <View>
-            <SkeletonItem width={140} height={26} style={{ marginBottom: 8 }} />
+            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+                 <SkeletonItem width={32} height={32} style={{ borderRadius: 8, marginRight: 8 }} />
+                 <SkeletonItem width={100} height={26} />
+            </View>
             <SkeletonItem width={100} height={16} />
           </View>
           <View style={{ flexDirection: "row", gap: 10 }}>
@@ -400,7 +407,15 @@ export default function HomeScreen() {
       {/* --- HEADER --- */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.brand}>VeGreen</Text>
+          <View style={styles.brandContainer}>
+            <Image
+              source={LogoSource}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+            <Text style={styles.brand}>VeGreen</Text>
+          </View>
+
           {isUpdating ? (
             <View
               style={{
@@ -697,7 +712,14 @@ export default function HomeScreen() {
         collapsable={false}
       >
         <View style={styles.captureHeader}>
-          <Text style={styles.captureBrand}>VeGreen</Text>
+          <View style={styles.captureBrandContainer}>
+            <Image
+              source={LogoSource}
+              style={styles.captureLogoImage}
+              resizeMode="contain"
+            />
+            <Text style={styles.captureBrand}>VeGreen</Text>
+          </View>
           <Text style={styles.captureDate}>{fixDate(data?.fecha, true)}</Text>
         </View>
 
@@ -816,6 +838,17 @@ const styles = StyleSheet.create({
     borderBottomColor: "#333",
     backgroundColor: COLORS.background,
   },
+  brandContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  logoImage: {
+    width: 35, 
+    height: 35,
+    marginRight: 7,
+    transform: [{ scale: 1.7 }],
+  },
   brand: {
     color: COLORS.textPrimary,
     fontSize: 22,
@@ -915,13 +948,30 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#333",
     paddingBottom: 10,
+    alignItems: "flex-start",
   },
-  captureBrand: { color: COLORS.textPrimary, fontSize: 24, fontWeight: "900" },
+  captureBrandContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  captureLogoImage: {
+    width: 45,
+    height: 45,
+    marginRight: 7,
+    transform: [{ scale: 1.7 }],
+  },
+  captureBrand: {
+    color: COLORS.textPrimary,
+    fontSize: 28,
+    fontWeight: "900",
+  },
   captureDate: {
     color: COLORS.textSecondary,
     fontSize: 14,
     marginTop: 4,
     fontWeight: "500",
+    marginLeft: 2,
   },
   footerText: {
     textAlign: "center",
