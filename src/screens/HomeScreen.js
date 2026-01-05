@@ -559,13 +559,13 @@ export default function HomeScreen() {
                   {/* Muestra botón si existe una tasa próxima (tieneProximo=true) y NO la estamos viendo. */}
                   {data?.tieneProximo && !isNextRateActive && (
                       <TouchableOpacity onPress={toggleNextRate} style={styles.mondayBtn}>
-                          <Text style={styles.mondayBtnText}>Ver Tasa Lunes →</Text>
+                          <Text style={styles.mondayBtnText}>Ver Tasa Lunes</Text>
                       </TouchableOpacity>
                   )}
                   {/* Si ya la estamos viendo, botón para volver */}
                   {isNextRateActive && (
                       <TouchableOpacity onPress={toggleNextRate} style={styles.mondayBtn}>
-                           <Text style={styles.mondayBtnText}>← Ver Hoy</Text>
+                           <Text style={styles.mondayBtnText}>Ver Hoy</Text>
                       </TouchableOpacity>
                   )}
               </View>
