@@ -1,22 +1,27 @@
 import axios from "axios";
 
 // Instancia con Timeout de 10 segundos
-// Esto evita que la app se quede pegada si el internet es lento
 const api = axios.create({
   baseURL: "https://api-dollar-0f0i.onrender.com",
   timeout: 10000,
 });
 
-export const getTasas = async (fecha = null) => {
+// Se agrega el parámetro 'proximo' para consultar la tasa adelantada
+export const getTasas = async (fecha = null, proximo = false) => {
   try {
     let url = `/api/dolar/ves`;
-    if (fecha) {
-      url += `?fecha=${fecha}`;
+    const params = [];
+    
+    if (fecha) params.push(`fecha=${fecha}`);
+    if (proximo) params.push(`proximo=true`);
+    
+    if (params.length > 0) {
+      url += `?${params.join('&')}`;
     }
+
     const response = await api.get(url);
     return response.data;
   } catch (error) {
-    // Si es por timeout, podemos loguearlo o manejarlo específico
     if (error.code === "ECONNABORTED") {
       console.log("La solicitud tardó demasiado.");
     }
@@ -42,7 +47,7 @@ export const getDiasDisponibles = async (mes, anio) => {
     );
     return response.data.dias || [];
   } catch (error) {
-    console.error("Error calendario:", error);
+    console.error("Error días disponibles:", error);
     return [];
   }
 };

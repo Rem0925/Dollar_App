@@ -6,12 +6,13 @@ import {
   TouchableOpacity,
   ToastAndroid,
   Platform,
+  Alert
 } from "react-native";
 import { COLORS, SIZES } from "../theme";
 import { formatCurrency } from "../utils/helpers";
-import * as Clipboard from "expo-clipboard"; // Importamos el portapapeles
-import * as Haptics from "expo-haptics"; // Para dar feedback táctil al copiar
-import { Copy } from "phosphor-react-native"; // Icono de copiar
+import * as Clipboard from "expo-clipboard"; 
+import * as Haptics from "expo-haptics"; 
+import { Copy } from "phosphor-react-native"; 
 
 export default function CurrencyCard({
   title,
@@ -24,24 +25,30 @@ export default function CurrencyCard({
   variant = "full",
   style,
   showRate = false,
+  isNextRate = false, // <--- NUEVA PROP
 }) {
-  // Función para copiar el monto calculado
+  
   const handleCopy = async () => {
-    if (calculatedValue) {
-      const valueToCopy = formatCurrency(calculatedValue);
+    if (calculatedValue || rate) {
+      // Copiamos el calculado si existe, sino la tasa
+      const valueToCopy = calculatedValue ? formatCurrency(calculatedValue) : formatCurrency(rate);
       await Clipboard.setStringAsync(valueToCopy);
-      await Haptics.selectionAsync(); // Pequeña vibración para confirmar
+      await Haptics.selectionAsync(); 
 
-      // MENSAJE VISUAL (Toast)
       if (Platform.OS === "android") {
-        // Muestra el mensaje nativo de Android abajo
         ToastAndroid.show("Copiado al portapapeles", ToastAndroid.SHORT);
       } else {
-        // Para iOS u otras plataformas, usamos una alerta simple
         Alert.alert("Copiado", `Monto: ${valueToCopy}`);
       }
     }
   };
+
+  // --- COMPONENTE VISUAL DE ETIQUETA "LUNES" ---
+  const NextRateBadge = () => (
+    <View style={[styles.badge, { backgroundColor: color }]}>
+      <Text style={styles.badgeText}>LUNES</Text>
+    </View>
+  );
 
   // --- DISEÑO MINI (CARRUSEL / CALCULADORA) ---
   if (variant === "mini") {
@@ -51,18 +58,19 @@ export default function CurrencyCard({
         onPress={handleCopy}
         activeOpacity={0.7}
       >
-        {/* Header modificado para incluir el icono a la derecha */}
         <View style={[styles.miniHeader, { justifyContent: "space-between" }]}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
             <View style={[styles.miniIcon, { backgroundColor: color + "20" }]}>
               <Text style={{ fontSize: 16 }}>{symbol}</Text>
             </View>
-            <Text style={[styles.miniTitle, { color: color }]}>
-              {title.split(" ")[0]}
-            </Text>
+            <View>
+                <Text style={[styles.miniTitle, { color: color }]}>
+                {title.split(" ")[0]}
+                </Text>
+                {/* Badge en Mini */}
+                {isNextRate && <View style={{marginTop: 2}}><NextRateBadge /></View>}
+            </View>
           </View>
-
-          {/* Icono pequeño de Copiar */}
           <Copy size={14} color={color} weight="bold" />
         </View>
 
@@ -93,13 +101,23 @@ export default function CurrencyCard({
         <View style={[styles.iconBox, { backgroundColor: color + "20" }]}>
           <Text style={{ fontSize: 18 }}>{symbol}</Text>
         </View>
-        <Text style={styles.title}>{title}</Text>
+        <View>
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+                <Text style={styles.title}>{title}</Text>
+                {/* Badge en Normal */}
+                {isNextRate && <NextRateBadge />}
+            </View>
+            {isNextRate && (
+                <Text style={{fontSize: 10, color: COLORS.textSecondary, fontWeight: '500'}}>
+                    Válido para el próximo día hábil
+                </Text>
+            )}
+        </View>
       </View>
 
       <View style={styles.body}>
         {conversionMode ? (
           <View style={{ alignItems: "flex-end" }}>
-            {/* Resultado de la conversión */}
             <View
               style={{ flexDirection: "row", alignItems: "baseline", gap: 4 }}
             >
@@ -112,7 +130,6 @@ export default function CurrencyCard({
             </View>
             <Text style={styles.label}>Recibes Aprox.</Text>
 
-            {/* Solo se muestra si activamos showRate (para el capture) */}
             {showRate && (
               <Text
                 style={[
@@ -127,7 +144,9 @@ export default function CurrencyCard({
         ) : (
           <View>
             <Text style={styles.value}>{formatCurrency(rate)}</Text>
-            <Text style={styles.label}>Tasa del día</Text>
+            <Text style={styles.label}>
+                {isNextRate ? "Tasa Lunes" : "Tasa del día"}
+            </Text>
           </View>
         )}
       </View>
@@ -170,6 +189,21 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginTop: 2,
     textAlign: "right",
+  },
+  
+  // Badge Styles
+  badge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  badgeText: {
+    color: '#FFF',
+    fontSize: 9,
+    fontWeight: 'bold',
+    textTransform: 'uppercase'
   },
 
   miniContainer: {

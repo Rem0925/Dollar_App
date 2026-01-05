@@ -90,6 +90,10 @@ export default function HomeScreen() {
   const [loadingCalendar, setLoadingCalendar] = useState(false);
   const [selectedDateStr, setSelectedDateStr] = useState(null);
 
+  // --- ESTADO PARA TASA LUNES/PRÓXIMA ---
+  // Si estamos viendo la tasa futura
+  const [viewingNextRate, setViewingNextRate] = useState(false);
+
   const [showCalculator, setShowCalculator] = useState(false);
   const [amount, setAmount] = useState("0");
   const [baseCurrency, setBaseCurrency] = useState("USD");
@@ -129,8 +133,10 @@ export default function HomeScreen() {
     fetchFreshData(null, cacheLoaded);
   };
 
-  const fetchFreshData = async (dateString = null, hasLocalData = false) => {
+  // MODIFICADO: Acepta argumento 'proximo'
+  const fetchFreshData = async (dateString = null, hasLocalData = false, proximo = false) => {
     const shouldShowFullLoading = dateString ? true : !data && !hasLocalData;
+    
     if (shouldShowFullLoading) {
       setLoading(true);
     } else {
@@ -138,13 +144,18 @@ export default function HomeScreen() {
     }
 
     try {
-      const res = await getTasas(dateString);
+      // Llamamos a la API con el flag proximo
+      const res = await getTasas(dateString, proximo);
+      
       if (res && res.bcv) {
         setData(res);
-        if (!dateString) {
+        setViewingNextRate(proximo); // Actualizamos el estado visual
+
+        if (!dateString && !proximo) {
+          // Solo guardamos en caché si es la tasa "normal" del día
           await AsyncStorage.setItem("@last_rates", JSON.stringify(res));
           setSelectedDateStr(null);
-        } else {
+        } else if (dateString) {
           setSelectedDateStr(dateString);
         }
       } else {
@@ -188,7 +199,8 @@ export default function HomeScreen() {
     const diaFmt = String(day).padStart(2, "0");
     const fechaFull = `${calYear}-${mesFmt}-${diaFmt}`;
     setModalVisible(false);
-    fetchFreshData(fechaFull);
+    // Al buscar fecha histórica, desactivamos modo "proximo"
+    fetchFreshData(fechaFull, false, false);
   };
 
   const handleResetToToday = () => {
@@ -196,7 +208,19 @@ export default function HomeScreen() {
     const hoy = new Date();
     setCalMonth(hoy.getMonth());
     setCalYear(hoy.getFullYear());
-    fetchFreshData(null);
+    // Volver a la tasa normal (proximo = false)
+    fetchFreshData(null, false, false);
+  };
+
+  const toggleNextRate = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (viewingNextRate) {
+        // Si estamos viendo lunes, volver a hoy
+        handleResetToToday();
+    } else {
+        // Ver tasa del lunes
+        fetchFreshData(null, false, true);
+    }
   };
 
   const fixDate = (dateString, justDate = false) => {
@@ -263,9 +287,6 @@ export default function HomeScreen() {
     }
   };
 
-  const parseAmount = () =>
-    parseFloat(amount.replace(/\./g, "").replace(",", ".")) || 0;
-
   // --- OPTIMIZACIÓN 1: Display Value ---
   const displayValue = useMemo(() => {
     if (!amount) return "0";
@@ -315,6 +336,10 @@ export default function HomeScreen() {
     return grid;
   };
 
+  // --- HELPER PARA SABER SI ES TASA PROXIMA EN UI ---
+  // El backend devuelve 'esTasaProxima' true si pedimos proximo=true
+  const isNextRateActive = data?.esTasaProxima; 
+
   // --- PANTALLA DE CARGA (SKELETON) ---
   if (loading)
     return (
@@ -353,6 +378,7 @@ export default function HomeScreen() {
         </View>
       </SafeAreaView>
     );
+
   if (!data && !loading) {
     return (
       <View style={[styles.container, styles.center, { padding: 40 }]}>
@@ -400,6 +426,7 @@ export default function HomeScreen() {
       </View>
     );
   }
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
@@ -475,7 +502,8 @@ export default function HomeScreen() {
             style={styles.iconBtn}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              fetchFreshData(selectedDateStr);
+              // Refrescar manteniendo el modo actual
+              fetchFreshData(selectedDateStr, false, viewingNextRate);
             }}
           >
             <ArrowsClockwise color={COLORS.textSecondary} size={20} />
@@ -502,7 +530,7 @@ export default function HomeScreen() {
             refreshControl={
               <RefreshControl
                 refreshing={isUpdating}
-                onRefresh={() => fetchFreshData(selectedDateStr)}
+                onRefresh={() => fetchFreshData(selectedDateStr, false, viewingNextRate)}
                 tintColor={COLORS.accent}
                 colors={[COLORS.accent, COLORS.binance]}
                 progressBackgroundColor={COLORS.cardBg}
@@ -520,21 +548,41 @@ export default function HomeScreen() {
                   </Text>
                 </TouchableOpacity>
               )}
-              <Text style={styles.sectionTitle}>
-                {selectedDateStr ? "Tasas Históricas" : "Tasas del Día"}
-              </Text>
+              
+              {/* --- TÍTULO Y BOTÓN DE TASA LUNES --- */}
+              <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 15}}>
+                  <Text style={[styles.sectionTitle, {marginBottom: 0}]}>
+                    {isNextRateActive ? "Tasa del Lunes" : (selectedDateStr ? "Tasas Históricas" : "Tasas del Día")}
+                  </Text>
+                  
+                  {/* LÓGICA DE BOTÓN VER TASA LUNES */}
+                  {/* Muestra botón si existe una tasa próxima (tieneProximo=true) y NO la estamos viendo. */}
+                  {data?.tieneProximo && !isNextRateActive && (
+                      <TouchableOpacity onPress={toggleNextRate} style={styles.mondayBtn}>
+                          <Text style={styles.mondayBtnText}>Ver Tasa Lunes →</Text>
+                      </TouchableOpacity>
+                  )}
+                  {/* Si ya la estamos viendo, botón para volver */}
+                  {isNextRateActive && (
+                      <TouchableOpacity onPress={toggleNextRate} style={styles.mondayBtn}>
+                           <Text style={styles.mondayBtnText}>← Ver Hoy</Text>
+                      </TouchableOpacity>
+                  )}
+              </View>
 
               <CurrencyCard
                 title="BCV (Oficial)"
                 symbol="🏦"
                 color={COLORS.bcv}
                 rate={data?.bcv}
+                isNextRate={isNextRateActive} // Solo BCV recibe flag
               />
               <CurrencyCard
                 title="Binance P2P"
                 symbol="🪙"
                 color={COLORS.binance}
                 rate={data?.binance}
+                // Binance no es oficial, no lleva flag lunes usualmente
               />
               <CurrencyCard
                 title="Promedio"
@@ -547,6 +595,7 @@ export default function HomeScreen() {
                 symbol="🇪🇺"
                 color={COLORS.euro}
                 rate={data?.euro}
+                isNextRate={isNextRateActive} // Euro recibe flag
               />
             </Animated.View>
           </ScrollView>
@@ -599,6 +648,7 @@ export default function HomeScreen() {
                   conversionMode={true}
                   resultSymbol={baseCurrency === "USD" ? "Bs" : "$"}
                   calculatedValue={calculatedValues.bcv}
+                  isNextRate={isNextRateActive} // Flag Lunes en Calc
                 />
                 <CurrencyCard
                   variant="mini"
@@ -626,6 +676,7 @@ export default function HomeScreen() {
                   conversionMode={true}
                   resultSymbol={baseCurrency === "USD" ? "Bs" : "€"}
                   calculatedValue={calculatedValues.euro}
+                  isNextRate={isNextRateActive} // Flag Lunes en Calc
                 />
               </ScrollView>
             </View>
@@ -753,6 +804,7 @@ export default function HomeScreen() {
               showRate={true}
               resultSymbol={baseCurrency === "USD" ? "Bs" : "$"}
               calculatedValue={calculatedValues.bcv}
+              isNextRate={isNextRateActive} // Flag Capture
             />
             <CurrencyCard
               title="Binance P2P"
@@ -783,18 +835,20 @@ export default function HomeScreen() {
               showRate={true}
               resultSymbol={baseCurrency === "USD" ? "Bs" : "€"}
               calculatedValue={calculatedValues.euro}
+              isNextRate={isNextRateActive} // Flag Capture
             />
           </View>
         ) : (
           <View>
             <Text style={[styles.sectionTitle, { marginTop: 10 }]}>
-              Tasas del Día
+                {isNextRateActive ? "Tasa del Lunes" : "Tasas del Día"}
             </Text>
             <CurrencyCard
               title="BCV (Oficial)"
               symbol="🏦"
               color={COLORS.bcv}
               rate={data?.bcv}
+              isNextRate={isNextRateActive} // Flag Capture
             />
             <CurrencyCard
               title="Binance P2P"
@@ -814,6 +868,7 @@ export default function HomeScreen() {
               symbol="🇪🇺"
               color={COLORS.euro}
               rate={data?.euro}
+              isNextRate={isNextRateActive} // Flag Capture
             />
           </View>
         )}
@@ -884,6 +939,19 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     fontWeight: "600",
   },
+  // ESTILO BOTON LUNES
+  mondayBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  mondayBtnText: {
+    color: COLORS.accent,
+    fontWeight: 'bold',
+    fontSize: 12
+  },
+
   inputDisplay: {
     paddingVertical: 15,
     paddingHorizontal: 20,
