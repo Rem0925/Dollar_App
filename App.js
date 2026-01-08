@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useCallback, useState } from "react";
+import { View } from "react-native"; // Importar View
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { House, ChartLineUp } from "phosphor-react-native";
@@ -9,7 +10,11 @@ import {
 import HomeScreen from "./src/screens/HomeScreen";
 import ChartScreen from "./src/screens/ChartScreen";
 import * as Haptics from "expo-haptics";
+import * as SplashScreen from "expo-splash-screen"; // IMPORTAR ESTO
 import { COLORS } from "./src/theme";
+
+// 1. Mantiene el Splash Screen visible mientras se carga el JS
+SplashScreen.preventAutoHideAsync();
 
 const Tab = createBottomTabNavigator();
 
@@ -21,9 +26,9 @@ const MyTheme = {
   },
 };
 
+// ... (Tu función MainTabs se queda igual, no hace falta tocarla) ...
 function MainTabs() {
   const insets = useSafeAreaInsets();
-
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -93,12 +98,47 @@ function MainTabs() {
 }
 
 export default function App() {
+  const [appIsReady, setAppIsReady] = useState(false);
+
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Aquí podrías cargar fuentes o hacer llamadas API iniciales si quisieras
+        // Por ahora solo simulamos una carga rápida o esperamos a que React monte
+        await new Promise(resolve => setTimeout(resolve, 100)); 
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setAppIsReady(true);
+      }
+    }
+
+    prepare();
+  }, []);
+
+  // 2. Esta función se ejecuta cuando la vista raíz ya se "pintó" en pantalla
+  const onLayoutRootView = useCallback(async () => {
+    if (appIsReady) {
+      // Solo en este momento ocultamos el Splash Screen nativo
+      await SplashScreen.hideAsync();
+    }
+  }, [appIsReady]);
+
+  if (!appIsReady) {
+    return null;
+  }
+
   return (
-    // 2. Envuelve todo en SafeAreaProvider
     <SafeAreaProvider>
-      <NavigationContainer theme={MyTheme}>
-        <MainTabs />
-      </NavigationContainer>
+      {/* 3. Envolvemos todo en una View con onLayout y el color de fondo correcto */}
+      <View 
+        style={{ flex: 1, backgroundColor: COLORS.background }} 
+        onLayout={onLayoutRootView}
+      >
+        <NavigationContainer theme={MyTheme}>
+          <MainTabs />
+        </NavigationContainer>
+      </View>
     </SafeAreaProvider>
   );
 }
