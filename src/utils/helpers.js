@@ -1,15 +1,15 @@
 export const formatCurrency = (amount) => {
+
   if (amount === "" || amount === null || amount === undefined) return "0,00";
 
   // Convertimos a número (si es string)
   const num = typeof amount === "string" ? parseFloat(amount) : amount;
-
   if (isNaN(num)) return "0,00";
 
   // Formato Venezuela: 1.234,56
   return num.toLocaleString("es-VE", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: (num > 99999 ? 0 : 2),
+    maximumFractionDigits:  (num > 99999 ? 0 : 2),
   });
 };
 

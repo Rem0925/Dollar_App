@@ -571,14 +571,14 @@ export default function HomeScreen() {
               </View>
 
               <CurrencyCard
-                title="BCV (Oficial)"
+                title="Dolar (BCV)"
                 symbol="🏦"
                 color={COLORS.bcv}
                 rate={data?.bcv}
                 isNextRate={isNextRateActive} // Solo BCV recibe flag
               />
               <CurrencyCard
-                title="Binance P2P"
+                title="Usdt (Binance p2p)"
                 symbol="🪙"
                 color={COLORS.binance}
                 rate={data?.binance}
@@ -642,7 +642,7 @@ export default function HomeScreen() {
               >
                 <CurrencyCard
                   variant="mini"
-                  title="BCV (Oficial)"
+                  title="Dolar (BCV)"
                   symbol="🏦"
                   color={COLORS.bcv}
                   conversionMode={true}
@@ -652,7 +652,7 @@ export default function HomeScreen() {
                 />
                 <CurrencyCard
                   variant="mini"
-                  title="Binance P2P"
+                  title="Usdt (Binance p2p)"
                   symbol="🪙"
                   color={COLORS.binance}
                   conversionMode={true}
@@ -796,7 +796,7 @@ export default function HomeScreen() {
               </Text>
             </View>
             <CurrencyCard
-              title="BCV (Oficial)"
+              title="Dolar (BCV)"
               symbol="🏦"
               color={COLORS.bcv}
               rate={data?.bcv}
@@ -807,7 +807,7 @@ export default function HomeScreen() {
               isNextRate={isNextRateActive} // Flag Capture
             />
             <CurrencyCard
-              title="Binance P2P"
+              title="Usdt (Binance p2p)"
               symbol="🪙"
               color={COLORS.binance}
               rate={data?.binance}
@@ -844,14 +844,14 @@ export default function HomeScreen() {
                 {isNextRateActive ? "Tasa del Lunes" : "Tasas del Día"}
             </Text>
             <CurrencyCard
-              title="BCV (Oficial)"
+              title="Dolar (BCV)"
               symbol="🏦"
               color={COLORS.bcv}
               rate={data?.bcv}
               isNextRate={isNextRateActive} // Flag Capture
             />
             <CurrencyCard
-              title="Binance P2P"
+              title="Usdt (Binance p2p)"
               symbol="🪙"
               color={COLORS.binance}
               rate={data?.binance}

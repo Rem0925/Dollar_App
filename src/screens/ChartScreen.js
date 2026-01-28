@@ -40,7 +40,7 @@ const SkeletonItem = ({ width, height, style }) => {
           duration: 800,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   }, []);
 
@@ -92,13 +92,13 @@ export default function ChartScreen() {
     const dataMap = {};
     rawData.forEach((item) => {
       if (item.fecha) {
-        const parts = item.fecha.split('/');
+        const parts = item.fecha.split("/");
         if (parts.length === 2) {
-            // padStart(2, '0') convierte "1" en "01"
-            const day = parts[0].padStart(2, '0');
-            const month = parts[1].padStart(2, '0');
-            const normalizedKey = `${day}/${month}`;
-            dataMap[normalizedKey] = item;
+          // padStart(2, '0') convierte "1" en "01"
+          const day = parts[0].padStart(2, "0");
+          const month = parts[1].padStart(2, "0");
+          const normalizedKey = `${day}/${month}`;
+          dataMap[normalizedKey] = item;
         }
       }
     });
@@ -122,7 +122,7 @@ export default function ChartScreen() {
       d.setDate(d.getDate() - i);
       const day = String(d.getDate()).padStart(2, "0");
       const month = String(d.getMonth() + 1).padStart(2, "0");
-      const dateLabel = `${day}/${month}`;  
+      const dateLabel = `${day}/${month}`;
       const key = dateLabel;
 
       if (dataMap[key]) {
@@ -302,12 +302,12 @@ export default function ChartScreen() {
         {/* LEYENDA DINÁMICA */}
         <View style={styles.legendContainer}>
           <LegendItem
-            label="BCV"
+            label="Dolar BCV"
             value={currentValues.bcv}
             color={COLORS.bcv}
           />
           <LegendItem
-            label="Binance"
+            label="Usdt Binance"
             value={currentValues.binance}
             color={COLORS.binance}
           />
@@ -404,7 +404,7 @@ export default function ChartScreen() {
                     weight="fill"
                   />
                 </View>
-                <Text style={styles.statLabel}>BRECHA (Binance / BCV)</Text>
+                <Text style={styles.statLabel}>BRECHA (USDT / BCV)</Text>
               </View>
               <Text
                 style={[

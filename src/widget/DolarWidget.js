@@ -91,7 +91,7 @@ export function DolarWidget({ bcv, binance, lastUpdate }) {
           }}
         >
           <TextWidget
-            text="Binance"
+            text="Usdt Binance"
             style={{ fontSize: 16, color: "#FFFFFF", fontWeight: "bold" }}
           />
           <TextWidget
